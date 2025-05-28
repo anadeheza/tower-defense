@@ -1,5 +1,8 @@
 #include "estrategia.h"
 #include "turno.h"
+#include "simulador.h"
+#include "pila.h"
+
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
@@ -54,9 +57,29 @@ void disponer(Nivel* nivel, Mapa* mapa) {
     }
 }
 
+Pila * pila_crear (int tamIn){
 
+    Pila *pilita = malloc(sizeof(Pila));
+    pilita->datos = malloc(sizeof(int) * tamIn);
+    pilita->tam = tamIn; 
+    
+    return  pilita;
+}
 
-Coordenada* posiciones_validas_backtracking(TipoCasilla **casillas, int alto, int ancho) {
+void pila_apilar(Pila *pilita, Coordenada nuevo) {
+    if(pilita->tam == pilita->ultimo) {
+        pilita->tam *= 2;
+        pilita->datos = realloc(pilita->datos, pilita->tam * sizeof(int));
+    }
+    pilita->datos[pilita->ultimo] = nuevo;
+    pilita->ultimo ++;
+}
+
+void pila_desapilar(Pila *pilita) {
+    pilita->ultimo --;
+}
+
+Coordenada* filtrar_validas(TipoCasilla **casillas, int alto, int ancho) {
     Coordenada *validas = malloc (sizeof (Coordenada)*(alto * ancho));
     int cant_posiciones_validas = 0;
     
@@ -72,7 +95,73 @@ Coordenada* posiciones_validas_backtracking(TipoCasilla **casillas, int alto, in
     return validas;
 }
 
-Tower custom (Coordenada torre,  Mapa* mapita) {
+void disponer_con_backtracking(Mapa* mapa) {
+    Pila* pila = pila_crear();
+    if (!pila) return;
+
+    Estado inicial;
+    inicial.mapita = *mapa;
+    inicial.torresColocadas = 0;
+    inicial.fila = 0;
+    inicial.columna = 0;
+
+    pila_apilar(pila, &inicial);
+
+    while (!pila_es_vacia(pila)) {
+        Estado actual;
+        pila_desapilar(pila);
+
+        if (actual.torresColocadas == mapa->cant_torres) {
+            // Copiar el estado actual al mapa original
+            *mapa = actual.mapita;
+            break; // Solución encontrada
+        }
+        
+        for (int f = actual.fila; f < mapa->alto; f++) {
+            for (int c = (f == actual.fila? actual.columna : 0); c < mapa->ancho; c++) {
+
+                if (es_posicion_valida(&actual.mapita, f, c)) {
+                    Estado nuevo;
+                    nuevo.mapita = actual.mapita;
+                    nuevo.torresColocadas = actual.torresColocadas + 1;
+                    nuevo.fila = f;
+                    nuevo.columna = c + 1;
+
+                    colocar_torre(&nuevo.mapita, f, c);
+                    pila_apilar(pila, &nuevo);
+                }
+            }
+        }
+    }
+}
+
+/*
+void disponer_con_backtracking(Nivel* nivel, Mapa* mapa){
+    Coordenada *pos_validas = filtrar_validas(mapa->casillas, mapa->alto, mapa->ancho);
+    int cant_validas = posiciones_validas(pos_validas, mapa->casillas, mapa->alto, mapa->ancho);
+    Pila *slots_torres = pila_crear(mapa->cant_torres);
+
+    qsort(pos_validas, cant_validas, sizeof(Pila), distancia_al_origen); //ordeno para obtener la combinacion mas rapida
+
+    for(int i=0; i<mapa->cant_torres; i++)
+        pila_apilar(slots_torres, pos_validas[i]); //apilo la primera combinacion
+        
+    for(int i = (mapa->cant_torres -1); i < cant_validas; i++){
+        for(int j = 0; j < mapa->cant_torres; j++)
+            if(simular_nivel(nivel, mapa, disponer_con_backtracking))    
+                colocar_torre(mapa, slots_torres->datos[j].x, slots_torres->datos[j].y, j);
+            else{
+                pila_desapilar(slots_torres);
+            }
+    }
+
+
+    return;
+}
+*/
+
+
+Tower custom (Coordenada* torre,  Mapa* mapita) {
     Tower torre_ord;
     torre_ord.ataque = 0;
     int rango = mapita->distancia_ataque;
@@ -108,10 +197,9 @@ int comparar_torres(Tower *torre_a, Tower *torre_b) {
 
     return distancia_al_origen(torre_a) - distancia_al_origen(torre_b);
 }
-
 void disponer_custom(Nivel* nivel, Mapa* mapa) {
 
-    Coordenada *pos_validas = posiciones_validas_backtracking(mapa->casillas, mapa->alto, mapa->ancho);
+    Coordenada *pos_validas = filtrar_validas(mapa->casillas, mapa->alto, mapa->ancho);
     int cant_validas = posiciones_validas(pos_validas, mapa->casillas, mapa->alto, mapa->ancho);
     Tower *posibles_torres = malloc(sizeof(Tower) * cant_validas);
 

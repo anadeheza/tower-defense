@@ -3,23 +3,15 @@
 
 #include "mapa.h"
 #include "nivel.h"
+#include "pila.h"
 
-typedef struct Stack_{
-    Coordenada *torres;
-    int ultimo;
-}Pila;
 
-typedef struct Queque_{
-    Coordenada *vacios;
-    int ultimo, primero;
-}Cola;
-
-/*
-typedef struct Caso_{
-    int hay_bifurcacion;    //0 si no hay bifurcaciones, 1 si las hay
-    Coordenada pos_bifurcacion;     //irrelevante si hay_bifurcacion = 0
-}CasoMapa;
-*/
+typedef struct estado {
+    Mapa mapita;
+    int torresColocadas;
+    int fila;
+    int columna;
+} Estado;
 
 typedef struct Torre_{
     Coordenada pos_torre;
@@ -38,10 +30,6 @@ void disponer_con_backtracking(Nivel* nivel, Mapa* mapa);
 
 Coordenada* posiciones_validas_backtracking(TipoCasilla **casillas, int alto, int ancho);
 
-//static int determinar_posicion_torre_backtracking(int *casilla_elegida, Coordenada *validas);
-
 void disponer_custom(Nivel* nivel, Mapa* mapa);
-
-void pila_desapilar(Pila *pilita);
 
 #endif
