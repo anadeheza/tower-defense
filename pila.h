@@ -1,5 +1,5 @@
-#ifndef MAPA_H
-#define MAPA_H
+#ifndef PILA_H
+#define PILA_H
 #include "nivel.h"
 
 
@@ -11,7 +11,6 @@ int ultimo;
 
 typedef void*(*FuncionCopia)(void*);
 typedef void(*FuncionDestructora)(void*);
-typedef void(*FuncionVisitante)(void*);
 
 Pila *pila_crear(int); 
 
@@ -24,5 +23,8 @@ void pila_apilar(Pila*, void*, FuncionCopia);
 void pila_desapilar(Pila*, FuncionDestructora);
 
 void pila_destruir(Pila*, FuncionDestructora);
+
+void* copiar(void* elemento);
+void destruir(void* elemento);
 
 #endif

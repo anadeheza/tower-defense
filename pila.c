@@ -21,6 +21,7 @@ void* copiar(void* elemento) {
 }
 
 
+
 void pila_apilar(Pila *pilita, void *nuevo, FuncionCopia crear) {
     if(pilita->tam == pilita->ultimo) {
         pilita->tam *= 2;
@@ -37,13 +38,15 @@ void destruir(void* elemento) {
 }
 
 void pila_desapilar(Pila *pilita, FuncionDestructora destruir) {
-    if(pilita->ultimo) {
-        destruir (pilita->datos[pilita->ultimo]);
-        pilita->ultimo --;
+    if (pilita->ultimo > 0) {
+        pilita->ultimo--;
+        destruir(pilita->datos[pilita->ultimo]);
     }
 }
 
 void pila_destruir(Pila *pilita, FuncionDestructora destruir){
-    while (pilita -> ultimo)
+    while (pilita->ultimo > 0)
         pila_desapilar(pilita, destruir);
+    free(pilita->datos);
+    free(pilita);
 }
